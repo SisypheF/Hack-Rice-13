@@ -2,6 +2,7 @@ import math
 import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
+import json
 
 class model:
     def __init__(self, fileName='/Users/michael_khalfin/Downloads/Book6.xlsx'):
@@ -47,8 +48,56 @@ class model:
 
 
     # optimizing with 3 parameters, 8 variables
-    def big_optimizer(self):
-        pass
+    def big_optimizer(self, budget, riskTol, deficit, penalty=100):
+        # Low, Medium, High
+        if riskTol == "low":
+            pct = .03
+        elif riskTol == "medium":
+            pct = .05
+        else:
+            pct = .1
+
+        # Initialize model
+        model = gp.Model("MIP_Model")
+
+        # Number of projects in the data table
+        numProjDev = self.df.shape[0]
+
+        # Add variables to the model
+        x = model.addVars(numProjDev, vtype=GRB.INTEGER, name="quantity")
+        d = model.addVars(numProjDev, vtype=GRB.BINARY, name="devTF")
+        dbar = model.addVar(vtype=GRB.INTEGER, name="amtDevs")
+        v = model.addVar(vtype=GRB.INTEGER, name="amtVintage")
+        r = model.addVar(vtype=GRB.INTEGER, name="amtRegistry")
+        l = model.addVar(vtype=GRB.INTEGER, name="amtLocations")
+        m = model.addVar(vtype=GRB.INTEGER, name="amtMechanisms")
+        t = model.addVar(vtype=GRB.INTEGER, name="amtTypes")
+
+        # Initialize the objective function
+        obj = dbar + v + r + l + m + t
+        model.setObjective(obj, GRB.MAXIMIZE)
+
+        # Constraints
+        model.addConstr(gp.quicksum(self.df['Dollar'][i]*x[i] for i in range(numProjDev)) <= budget, "price")
+        for i in range(numProjDev):
+            model.addConstr(x[i] <= self.df["Quantity"][i], "quantity")
+            model.addConstr(d[i] * x[i] - x[i] >= -1*pct, "1st binary constraint")
+            model.addConstr(d[i] * x[i] - d[i] >= -1*pct, "2nd binary constraint")
+            model.addConstr(x[i] / deficit <= pct, "maximum concentration of each project")
+        model.addConstr(gp.quicksum(d[i] for i in range(numProjDev)) - dbar >= 0, "num of devs")
+        model.addConstr(self.distinct(d, self.df['Vintage'], numProjDev) - v >= 0, "vintage")
+        model.addConstr(self.distinct(d, self.df['Registry'], numProjDev) - r >= 0, "registry")
+        model.addConstr(self.distinct(d, self.df['Location'], numProjDev) - l >= 0, "location")
+        model.addConstr(self.distinct(d, self.df['Mechanism'], numProjDev) - m >= 0, "mechanism")
+        model.addConstr(self.distinct(d, self.df['Type'], numProjDev) - t >= 0, "typeProject")
+        model.addConstr(gp.quicksum(x[i] for i in range(numProjDev)) >= deficit, "deficit")
+
+        # Optimization
+        model.optimize()
+
+        returnDict = {dbar.varName:dbar.X, v.varName:v.x, r.varName:r.x, l.varName:l.x, m.varName:m.x, t.varName:t.x}
+        jsonString = json.dumps(returnDict, indent=4, sort_keys=True)
+        return jsonString
 
     # optimizing with 9 parameters, 2 variables
     def small_optimizer(self, budget, riskTol, deficit, 
@@ -94,5 +143,5 @@ class model:
         # Optimization
         model.optimize()
 
-        quantity_values = [x[i].X for i in range(numProjDev)]
-        return quantity_values
+        quantityValues = [x[i].X for i in range(numProjDev)]
+        return quantityValues
