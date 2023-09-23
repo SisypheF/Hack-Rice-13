@@ -8,6 +8,9 @@ class model:
     def __init__(self, fileName='/Users/michael_khalfin/Downloads/Book6.xlsx'):
         self.df = pd.read_excel(fileName)
         self.df = self.df.dropna()
+        self.valueDict = {}
+        self.shadowPriceDict = {}
+        self.portfolio = []
 
     # helper functions
     def castRisk(self, character):
@@ -103,10 +106,20 @@ class model:
         # Optimization
         model.optimize()
 
+        # Check for infeasibility
+        if model.status == GRB.Status.INFEASIBLE:
+            return json.dumps({})
+
         # Get the solution
-        returnDict = {dbar.varName:dbar.X, v.varName:v.x, r.varName:r.x, l.varName:l.x, m.varName:m.x, t.varName:t.x}
-        jsonString = json.dumps(returnDict, indent=4, sort_keys=True)
+        valueDict = {dbar.varName:dbar.X, v.varName:v.X, r.varName:r.X, l.varName:l.X, m.varName:m.X, t.varName:t.X}
+        self.valueDict = valueDict
+
+        # Return the solution
+        jsonString = json.dumps(valueDict, indent=4, sort_keys=True)
         return jsonString
+    
+    def returnValueDict(self) -> dict:
+        return self.valueDict
 
     # optimizing with 9 parameters, 2 variables
     def small_optimizer(self, budget, riskTol, deficit, 
@@ -154,17 +167,55 @@ class model:
             model.addConstr(d[i] * x[i] - x[i] >= -1*pct, "1st binary constraint")
             model.addConstr(d[i] * x[i] - d[i] >= -1*pct, "2nd binary constraint")
             model.addConstr(x[i] / deficit <= pct, "maximum concentration of each project")
-        model.addConstr(gp.quicksum(d[i] for i in range(numProjDev)) >= amtDevs, "num of devs")
-        model.addConstr(self.distinct(d, self.df['Vintage'], numProjDev) >= amtVintage, "vintage")
-        model.addConstr(self.distinct(d, self.df['Registry'], numProjDev) >= amtRegistry, "registry")
-        model.addConstr(self.distinct(d, self.df['Location'], numProjDev) >= amtLocations, "location")
-        model.addConstr(self.distinct(d, self.df['Mechanism'], numProjDev) >= amtMechanisms, "mechanism")
-        model.addConstr(self.distinct(d, self.df['Type'], numProjDev) >= amtTypes, "typeProject")
+        model.addConstr(gp.quicksum(d[i] for i in range(numProjDev)) >= amtDevs, "amtDevs")
+        model.addConstr(self.distinct(d, self.df['Vintage'], numProjDev) >= amtVintage, "amtVintage")
+        model.addConstr(self.distinct(d, self.df['Registry'], numProjDev) >= amtRegistry, "amtRegistry")
+        model.addConstr(self.distinct(d, self.df['Location'], numProjDev) >= amtLocations, "amtLocation")
+        model.addConstr(self.distinct(d, self.df['Mechanism'], numProjDev) >= amtMechanisms, "amtMechanism")
+        model.addConstr(self.distinct(d, self.df['Type'], numProjDev) >= amtTypes, "amtTypes")
         model.addConstr(gp.quicksum(x[i] for i in range(numProjDev)) >= deficit, "deficit")
 
         # Optimization
         model.optimize()
 
+        # Check for infeasibility
+        if model.status == GRB.Status.INFEASIBLE:
+            return json.dumps({})
+
+        self.shadowPriceDict = {}
+        # Save the shadow prices for later use
+        for constr in model.getConstrs():
+            if constr.ConstrName in ["amtDevs", "amtVintage", "amtRegistry", "amtLocation", "amtMechanism", "amtTypes"]:
+                self.shadowPriceDict[constr.ConstrName] = constr.RHS
+
         # Return the portfolio as a list of quantities (int) for each project 
         quantityValues = [x[i].X for i in range(numProjDev)]
+        self.portfolio = quantityValues
+
         return quantityValues
+
+    def returnShadowPriceDict(self) -> dict:
+        return self.shadowPriceDict
+
+    def rateOfChange(self, varName: str, delta) -> float:
+        """
+        :param varName: The name of the variable
+        :param delta: The amount to change the variable by
+        :return: The dip rate of change for the portfolio
+        """
+        return -1*(self.shadowPriceDict["amtDevs"] * delta)
+
+    def returnPortfolio(self) -> list:
+        return self.portfolio
+
+if __name__ == "__main__":
+    ourModel = model()
+    ourModel.big_optimizer(10000, "medium", 100)
+    ourDict = ourModel.returnValueDict()
+    ourModel.small_optimizer(10000, "medium", 1000, amtTypes=ourDict['amtTypes'], amtVintage=ourDict['amtVintage'], 
+                            amtRegistry=ourDict['amtRegistry'], amtLocations=ourDict['amtLocations'], 
+                            amtMechanisms=ourDict['amtMechanisms'], amtDevs=ourDict['amtDevs'])
+    portfolio = ourModel.returnPortfolio()
+    #print(portfolio)
+    print(ourModel.returnShadowPriceDict())
+    print(ourModel.rateOfChange("amtDevs", 2))
