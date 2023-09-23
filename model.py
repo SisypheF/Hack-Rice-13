@@ -49,6 +49,14 @@ class model:
 
     # optimizing with 3 parameters, 8 variables
     def big_optimizer(self, budget, riskTol, deficit, penalty=100):
+        """
+        :param budget: The maximum budget for the portfolio
+        :param riskTol: The risk tolerance for the portfolio
+        :param deficit: The deficit for the portfolio
+        :param penalty: The penalty for the std deviation
+        :return: A json formatted dict (string -> int) with the 
+        amtDevs, amtVintage, amtRegistry, amtLocations, amtMechanisms, amtTypes
+        """
         # Low, Medium, High
         if riskTol == "low":
             pct = .03
@@ -95,6 +103,7 @@ class model:
         # Optimization
         model.optimize()
 
+        # Get the solution
         returnDict = {dbar.varName:dbar.X, v.varName:v.x, r.varName:r.x, l.varName:l.x, m.varName:m.x, t.varName:t.x}
         jsonString = json.dumps(returnDict, indent=4, sort_keys=True)
         return jsonString
@@ -103,6 +112,19 @@ class model:
     def small_optimizer(self, budget, riskTol, deficit, 
                         amtTypes=1, amtVintage=1, amtRegistry=1, amtLocations=1, 
                         amtMechanisms=1, amtDevs=1, penalty=100):
+        """
+        :param budget: The maximum budget for the portfolio
+        :param riskTol: The risk tolerance for the portfolio
+        :param deficit: The deficit for the portfolio
+        :param amtTypes: The number of unique types of projects
+        :param amtVintage: The number of unique vintages
+        :param amtRegistry: The number of unique registries
+        :param amtLocations: The number of unique locations
+        :param amtMechanisms: The number of unique mechanisms
+        :param amtDevs: The number of unique developers
+        :param penalty: The penalty for the std deviation
+        :return: The portfolio as a list of quantities (int) for each project 
+        """
         # Low, Medium, High
         if riskTol == "low":
             pct = .03
@@ -143,5 +165,6 @@ class model:
         # Optimization
         model.optimize()
 
+        # Return the portfolio as a list of quantities (int) for each project 
         quantityValues = [x[i].X for i in range(numProjDev)]
         return quantityValues
