@@ -74,7 +74,6 @@ def grade_scatter(lst, df):
             price.append(df['Dollar'][i])
     order1 = [1, 2, 3, 4, 6]
     order2 = ['A', 'B', 'C', 'D', 'F']
-    plt.figure(figsize=(20, 14))
     plt.scatter(grade, price, c='blue', s=50)
     plt.xticks(range(len(order1)), order1)
     plt.xticks(grade, order2)
