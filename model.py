@@ -19,6 +19,13 @@ class model:
             return mapping[character]
     
     def distinct(self, d, var, num):
+        """input:
+        d: a list of binary numbers representing whether we purchase credits from some project developers
+        var: a list of (homogeneous) objects representing the optimized combination
+        num: length of var
+
+        returns how many distinct values are in var
+        """
         modVar = []
         for index in range(num):
             if d[index]:
@@ -32,6 +39,13 @@ class model:
         return len(occurence.keys())
 
     def Var(self, x, num):
+        """
+        input:
+        x: a list of integers representing the optimized combination
+        num: length of x
+
+        Returns variance of x
+        """
         Xsum = 0
         for num in x:
             Xsum = Xsum + num
@@ -41,14 +55,54 @@ class model:
             sq_sum = sq_sum + (num - mean)**2
         return sq_sum / num
 
-    def occurrence(self, d, var, num, proj, df):
+    def occurrence(self, d, var, num, proj):
+        """
+        input:
+        d: a list of binary numbers representing whether we purchase credits from some project developers
+        var: a list of integers representing the optimized combination
+        num: length of var
+        proj: a string representing the risk grade of the project ('A', 'B', 'C', 'D', 'F')
+        
+        returns the number of occurrences of proj in var
+        """
+        
         count = 0
         for index in range(num):
             if d[index]:
-                if (df['Grade'][index] == proj):
+                if (self.df['Grade'][index] == proj):
                     count = count + var[index]
         return count
 
+    def big_constraints(self, budget, riskTol, deficit):
+        """
+        :param budget: The maximum budget for the portfolio
+        :param riskTol: The risk tolerance for the portfolio
+        :param deficit: The deficit for the portfolio
+        :return: T/F indicates if variables make sense given excel
+        """
+        # check if budget is big enough
+        truncated = self.df.sort_values(by="Dollar", ascending=True)[["Dollar", "Quantity"]]
+        amt = 0
+        total_quantity = 0
+        for index, row in truncated.iterrows():
+            price = row["Dollar"]
+            quantity = row["Quantity"]
+            for i in range(int(quantity)):
+                if total_quantity >= deficit:
+                    break
+                amt += price
+                total_quantity += 1
+            if total_quantity >= deficit:
+                break
+
+        if not (budget >= amt):
+            return json.dumps({"budget": False})
+
+        # check if deficit is small enough
+        if not (deficit <= self.df["Quantity"].sum()):
+            return json.dumps({"deficit": False})
+        
+        return json.dumps({"all": True})
 
     # optimizing with 3 parameters, 8 variables
     def big_optimizer(self, budget, riskTol, deficit, penalty=100):
@@ -60,11 +114,14 @@ class model:
         :return: A json formatted dict (string -> int) with the 
         amtDevs, amtVintage, amtRegistry, amtLocations, amtMechanisms, amtTypes
         """
+        #if not self.big_constraints(budget, riskTol, deficit):
+        #    return None
+
         # Low, Medium, High
         if riskTol == "low":
-            pct = .03
-        elif riskTol == "medium":
             pct = .05
+        elif riskTol == "medium":
+            pct = .07
         else:
             pct = .1
 
@@ -121,6 +178,22 @@ class model:
     def returnValueDict(self) -> dict:
         return self.valueDict
 
+    def small_constraint(self, amtTypes, amtVintage, amtRegistry, amtLocations, amtMechanisms, amtDevs):
+        if not (amtTypes >= 0 and amtTypes <= self.df["Type"].nunique()):
+            return json.dumps({"amtTypes": False})
+        if not (amtVintage >= 0 and amtVintage <= self.df["Vintage"].nunique()):
+            return json.dumps({"amtVintage": False})
+        if not (amtRegistry >= 0 and amtRegistry <= self.df["Registry"].nunique()):
+            return json.dumps({"amtRegistry": False})
+        if not (amtLocations >= 0 and amtLocations <= self.df["Location"].nunique()):
+            return json.dumps({"amtLocations": False})
+        if not (amtMechanisms >= 0 and amtMechanisms <= self.df["Mechanism"].nunique()):
+            return json.dumps({"amtMechanisms": False})
+        if not (amtDevs >= 0 and amtDevs <= self.df["Developer"].nunique()):
+            return json.dumps({"amtDevs": False})
+
+        return json.dumps({"all": True})
+
     # optimizing with 9 parameters, 2 variables
     def small_optimizer(self, budget, riskTol, deficit, 
                         amtTypes=1, amtVintage=1, amtRegistry=1, amtLocations=1, 
@@ -138,11 +211,12 @@ class model:
         :param penalty: The penalty for the std deviation
         :return: The portfolio as a list of quantities (int) for each project 
         """
+
         # Low, Medium, High
         if riskTol == "low":
-            pct = .03
-        elif riskTol == "medium":
             pct = .05
+        elif riskTol == "medium":
+            pct = .07
         else:
             pct = .1
 
