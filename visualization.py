@@ -65,17 +65,19 @@ def vintage_scatter(lst, df):
     plt.show()
 
 def grade_scatter(lst, df):
+    dic = {'A' : 1, 'B' : 2, 'C' : 3, 'D' : 4, 'F' : 6}
     grade = []
     price = []
     for i in range(len(lst)):
         if lst[i]:
-            grade.append(df['Grade'][i])
+            grade.append(dic[df['Grade'][i]])
             price.append(df['Dollar'][i])
-    order = ['F', 'D', 'C', 'B', 'A']
+    order1 = [1, 2, 3, 4, 6]
+    order2 = ['A', 'B', 'C', 'D', 'F']
     plt.figure(figsize=(20, 14))
-    for label in order:
-        mask = [item == label for item in grade]
-        plt.scatter([label] * sum(mask), [price[i] for i in range(len(price)) if mask[i]], color='blue', marker='o')
+    plt.scatter(grade, price, c='blue', s=50)
+    plt.xticks(range(len(order1)), order1)
+    plt.xticks(grade, order2)
     plt.xlabel('Grades')
     plt.ylabel('Price in $')
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
