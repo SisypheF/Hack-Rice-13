@@ -54,9 +54,13 @@ def vintage_scatter(lst, df):
             year.append(df['Vintage'][i])
             price.append(df['Dollar'][i])
     plt.figure(figsize=(20, 14))
-    plt.scatter(year, price, color='blue', marker='o')
+    plt.scatter(year, price, color='#4141f1', marker='o')
     plt.xlabel('Years')
     plt.ylabel('Price in $')
+
+    ax = plt.gca()  # Get current axes
+    ax.spines['bottom'].set_color('#4141f1')  # Change x-axis color
+    ax.spines['left'].set_color('#4141f1')   # Change y-axis color 
 
     plt.xticks(range(int(min(year)), int(max(year))+1, 1))
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
@@ -79,6 +83,11 @@ def bar_type(lst, df):
     colors = sns.color_palette("crest", len(dic.keys()))
     plt.figure(figsize=(20, 14))
     plt.bar(type, num, color=colors)
+
+    ax = plt.gca()  # Get current axes
+    ax.spines['bottom'].set_color('#4141f1')  # Change x-axis color
+    ax.spines['left'].set_color('#4141f1')   # Change y-axis color 
+    
     plt.xlabel('Type of Projects')
     plt.ylabel('number of Projects')
     plt.show()
@@ -99,9 +108,14 @@ def grade_scatter(lst, df):
     # Create a scatter plot with the desired order
     for label in order:
         mask = [item == label for item in grade]
-        plt.scatter([label]*sum(mask), [price[i] for i in range(len(price)) if mask[i]], color='blue', marker='o') 
+        plt.scatter([label]*sum(mask), [price[i] for i in range(len(price)) if mask[i]], color='#4141f1', marker='o') 
     plt.xlabel('Grades')
     plt.ylabel('Price in $')
+
+    ax = plt.gca()  # Get current axes
+    ax.spines['bottom'].set_color('#4141f1')  # Change x-axis color
+    ax.spines['left'].set_color('#4141f1')   # Change y-axis color 
+
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
     plt.show()
 
