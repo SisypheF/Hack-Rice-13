@@ -55,8 +55,8 @@ def vintage_scatter(lst, df):
         if lst[i]:
             year.append(df['Vintage'][i])
             price.append(df['Dollar'][i])
+    plt.figure(figsize=(20, 14))
     plt.scatter(year, price, color='blue', marker='o')
-
     plt.xlabel('Years')
     plt.ylabel('Price in $')
 
@@ -75,10 +75,9 @@ def grade_scatter(lst, df):
     for label in order:
         mask = [item == label for item in grade]
         plt.scatter([label] * sum(mask), [price[i] for i in range(len(price)) if mask[i]])
-
+    plt.figure(figsize=(10, 14))
     plt.xlabel('Grades')
     plt.ylabel('Price in $')
-
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
     plt.show()
 
