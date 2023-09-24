@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from model import model
-
 
 def project_piechart(lst):
     def custom_autopct(pct):
