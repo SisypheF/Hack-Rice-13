@@ -36,7 +36,7 @@ def project_piechart(lst):
         explst.append(0.05)
     explode = tuple(explst)
 
-    plt.figure(figsize=(10, 7))
+    plt.figure(figsize=(20, 14))
     wedges, texts, autotexts = plt.pie(sizes, labels=labels, colors=colors, autopct=custom_autopct, startangle=140, explode=explode, textprops={'fontweight': 'bold', 'color': 'white'})
     for t in autotexts:
         if t.get_text() == f'{max(sizes):.1f}%':

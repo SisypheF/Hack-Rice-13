@@ -5,7 +5,7 @@ from gurobipy import GRB
 import json
 
 class model:
-    def __init__(self, fileName='/Users/michael_khalfin/Downloads/Book6.xlsx'):
+    def __init__(self, fileName='/Users/meliodas/Downloads/Book6.xlsx'):
         self.df = pd.read_excel(fileName)
         self.df = self.df.dropna()
         self.valueDict = {}
