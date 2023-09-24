@@ -78,7 +78,7 @@ def bar_type(lst, df):
     
     colors = sns.color_palette("crest", len(dic.keys()))
     plt.figure(figsize=(20, 14))
-    plt.bar(type, num, color=colors)
+    plt.bar(type, num, color='blue')
     plt.xlabel('Type of Projects')
     plt.ylabel('number of Projects')
     plt.show()
