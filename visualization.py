@@ -65,40 +65,27 @@ def vintage_scatter(lst, df):
     plt.show()
 
 def grade_scatter(lst, df):
-    dic = {'A' : 1, 'B' : 2, 'C' : 3, 'D' : 4, 'F' : 6}
     grade = []
     price = []
     for i in range(len(lst)):
         if lst[i]:
-            grade.append(dic[df['Grade'][i]])
+            grade.append(df['Grade'][i])
             price.append(df['Dollar'][i])
-    order1 = [1, 2, 3, 4, 6]
-    order2 = ['A', 'B', 'C', 'D', 'F']
-    plt.scatter(grade, price, c='blue', s=50)
-    plt.xticks(range(len(order1)), order1)
-    plt.xticks(grade, order2)
+    # Desired order for the x-axis
+    order = ['F', 'D', 'C', 'B', 'A']
+
+    # Create a new figure with the desired size
+    plt.figure(figsize=(20, 14))
+
+    # Create a scatter plot with the desired order
+    for label in order:
+        mask = [item == label for item in grade]
+        plt.scatter([label]*sum(mask), [price[i] for i in range(len(price)) if mask[i]])    
     plt.xlabel('Grades')
     plt.ylabel('Price in $')
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
     plt.show()
 
-
-
-
-
-
-df = pd.read_excel('/Users/meliodas/Downloads/Book6.xlsx', engine='openpyxl')
-
-ourModel = model()
-#ourModel.big_optimizer(100000, "high", 10000)
-#ourDict = ourModel.returnValueDict()
-#ourModel.small_optimizer(100000, "high", 10000, amtTypes=ourDict['amtTypes'], amtVintage=ourDict['amtVintage'], 
-                            #amtRegistry=ourDict['amtRegistry'], amtLocations=ourDict['amtLocations'], 
-                            #amtMechanisms=ourDict['amtMechanisms'], amtDevs=ourDict['amtDevs'])
-ourModel.small_optimizer(10000, "low", 100)
-portfolio = ourModel.returnPortfolio()
-portfolio
-project_piechart(portfolio)
 
 
 
