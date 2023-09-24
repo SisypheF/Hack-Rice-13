@@ -75,7 +75,7 @@ def grade_scatter(lst, df):
     for label in order:
         mask = [item == label for item in grade]
         plt.scatter([label] * sum(mask), [price[i] for i in range(len(price)) if mask[i]])
-    plt.figure(figsize=(10, 14))
+    plt.figure(figsize=(20, 14))
     plt.xlabel('Grades')
     plt.ylabel('Price in $')
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
