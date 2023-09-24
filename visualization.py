@@ -64,6 +64,27 @@ def vintage_scatter(lst, df):
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
     plt.show()
 
+def bar_type(lst, df):
+    dic = {}
+    for i in range(len(lst)):
+        if lst[i]:
+            if df['Type'][i] not in dic.keys():
+                dic[df['Type'][i]] = 1
+            else:
+                dic[df['Type'][i]] += 1
+    type = []
+    num = []
+    for key in dic.keys():
+        type.append(key)
+        num.append(dic[key])
+    
+    colors = sns.color_palette("crest", len(dic.keys()))
+    plt.figure(figsize=(20, 14))
+    plt.bar(type, num, colors=colors)
+    plt.xlabel('Type of Projects')
+    plt.ylabel('number of Projects')
+    plt.show()
+
 def grade_scatter(lst, df):
     grade = []
     price = []
@@ -85,30 +106,6 @@ def grade_scatter(lst, df):
     plt.ylabel('Price in $')
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
     plt.show()
-
-
-def type_bar(lst, df):
-    dic = {}
-    for i in range(len(lst)):
-        if lst[i]:
-            if df['Type'][i] not in dic.keys():
-                dic[df['Type'][i]] = 1
-            else:
-                dic[df['Type'][i]] += 1
-    type = []
-    num = []
-    for key in dic.keys():
-        type.append(key)
-        num.append(dic[key])
-    
-    colors = sns.color_palette("crest", len(dic.keys()))
-    plt.figure(figsize=(20, 14))
-    plt.bar(type, num, colors=colors)
-    plt.xlabel('Type of Projects')
-    plt.ylabel('number of Projects')
-    
-
-
 
 
 
