@@ -86,6 +86,7 @@ def grade_scatter(lst, df):
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
     plt.show()
 
+
 def type_bar(lst, df):
     dic = {}
     for i in range(len(lst)):
