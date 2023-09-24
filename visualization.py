@@ -72,10 +72,10 @@ def grade_scatter(lst, df):
             grade.append(df['Grade'][i])
             price.append(df['Dollar'][i])
     order = ['F', 'D', 'C', 'B', 'A']
+    plt.figure(figsize=(20, 14))
     for label in order:
         mask = [item == label for item in grade]
         plt.scatter([label] * sum(mask), [price[i] for i in range(len(price)) if mask[i]])
-    plt.figure(figsize=(20, 14))
     plt.xlabel('Grades')
     plt.ylabel('Price in $')
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
